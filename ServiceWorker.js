@@ -1,9 +1,9 @@
 const cacheName = "DefaultCompany-test_webGL-Native-0.1.0";
 const contentToCache = [
     "Build/webgl-native-testing.loader.js",
-    "Build/webgl-native-testing.framework.js.br",
-    "Build/webgl-native-testing.data.br",
-    "Build/webgl-native-testing.wasm.br",
+    "Build/webgl-native-testing.framework.js",
+    "Build/webgl-native-testing.data",
+    "Build/webgl-native-testing.wasm",
     "TemplateData/style.css"
 
 ];

@@ -1,36 +1,72 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>MindAR + Cube</title>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.3/dist/mindar-image-three.prod.js"></script>
+    <title>MindAR WebGL Unity</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.7/dist/mindar-image.prod.js"></script>
     <style>
-      body { margin: 0; overflow: hidden; }
-      canvas { display: block; }
+      body, html {
+        margin: 0;
+        overflow: hidden;
+        background: white;
+      }
+      #ar-container {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        z-index: 0;
+      }
+      canvas#unity-canvas {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        z-index: 1;
+        pointer-events: none; /* prevent user interaction */
+      }
     </style>
   </head>
   <body>
+    <div id="ar-container"></div>
+    <canvas id="unity-canvas"></canvas>
+
     <script>
-      document.addEventListener("DOMContentLoaded", async () => {
+      const startAR = async () => {
         const mindarThree = new window.MINDAR.IMAGE.MindARThree({
-          container: document.body,
-          imageTargetSrc: "./targets.mind", // ← ganti sesuai file marker Anda
+          container: document.querySelector("#ar-container"),
+          imageTargetSrc: "targets.mind",
+          uiScanning: false,
+          uiLoading: "no",
         });
 
-        const { renderer, scene, camera } = mindarThree;
+        const {renderer, scene, camera} = mindarThree;
+        const anchor = mindarThree.addAnchor(0);
 
-        const anchor = mindarThree.addAnchor(0); // index marker
+        anchor.onTargetFound = () => {
+          if (typeof unityInstance !== 'undefined') {
+            unityInstance.SendMessage("MarkerEvents", "OnMarkerFound", "");
+          }
+        };
 
-        // Tambahkan cube ke anchor
-        const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-        const cube = new THREE.Mesh(geometry, material);
-        anchor.group.add(cube);
+        anchor.onTargetLost = () => {
+          if (typeof unityInstance !== 'undefined') {
+            unityInstance.SendMessage("MarkerEvents", "OnMarkerLost", "");
+          }
+        };
 
         await mindarThree.start();
         renderer.setAnimationLoop(() => {
           renderer.render(scene, camera);
         });
+      };
+
+      window.addEventListener("load", () => {
+        startAR();
+      });
+    </script>
+
+    <script>
+      var unityInstance = UnityLoader.instantiate("unity-canvas", "Build/build.json", {
+        onProgress: UnityProgress
       });
     </script>
   </body>
